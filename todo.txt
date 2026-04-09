@@ -1,0 +1,123 @@
+🧭 Overall Strategy
+
+Build in phases, not all at once:
+
+Core system (must work)
+Security + validation
+Better structure (clean code)
+Optional advanced features
+🏗️ Phase 1 — Foundation (Setup + Auth)
+Goal: Basic app with users
+
+Tasks:
+
+Project folder setup
+Database connection (PDO recommended)
+User registration
+User login/logout (sessions)
+
+Database (start simple):
+
+users table
+
+id
+username
+email
+password (hashed)
+created_at
+
+Skills you build:
+
+Authentication
+Password hashing (password_hash)
+Sessions
+📁 Phase 2 — File Upload Core
+Goal: Upload and store files
+
+Tasks:
+
+Create upload form
+Handle $_FILES
+Move file to /uploads directory
+Save file info to database
+
+files table:
+
+id
+user_id
+original_name
+stored_name (important!)
+file_path
+file_size
+uploaded_at
+
+Important concept:
+👉 Always rename files (e.g., uniqid()), never store original names directly.
+
+📂 Phase 3 — File Management
+Goal: Users can manage their files
+
+Tasks:
+
+List user’s files (table view)
+Download file
+Delete file
+
+Key logic:
+
+Only show files where user_id = current_user
+Prevent access to other users’ files
+🔐 Phase 4 — Security & Validation (VERY IMPORTANT)
+
+This is where your project becomes “serious”.
+
+File validation:
+Limit file size (e.g., 5MB)
+Allow only certain types (jpg, png, pdf, etc.)
+Block dangerous extensions (.php, .exe)
+Backend protection:
+Store files outside public folder OR
+Serve files through a PHP script (safer)
+Access control:
+Check ownership before:
+download
+delete
+🧱 Phase 5 — Clean Structure (Make it Professional)
+
+Refactor your code into something like:
+
+/project
+  /config
+    database.php
+  /controllers
+  /models
+  /views
+  /uploads
+  /public
+
+Concepts you introduce:
+
+Separation of concerns
+Reusable functions
+Cleaner code organization
+⚙️ Phase 6 — Add “Standout” Features
+
+Pick 1–2 of these (don’t overdo it):
+
+Option A: Public/Private Files
+Add visibility column
+Generate shareable links
+Option B: Download Tracking
+Count downloads
+Store timestamps
+Option C: File Search
+Search by filename
+Option D: Folder System (mini challenge)
+Group files into folders
+🧪 Phase 7 — Testing & Polish
+
+Test things like:
+
+Upload invalid file → rejected
+User accessing another user’s file → blocked
+Deleting file removes it from disk + DB
