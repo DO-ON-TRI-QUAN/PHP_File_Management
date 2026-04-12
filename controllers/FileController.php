@@ -136,3 +136,41 @@ if ($action === 'delete') {
     header("Location: ../public/index.php");
     exit;
 }
+
+// --------------------------------------------------------
+// RENAME
+// --------------------------------------------------------
+if ($action === 'rename') {
+    if (!isset($_SESSION['user_id'])) {
+        die("Unauthorized");
+    }
+
+    $file_id  = $_POST['id'];
+    $new_name = trim($_POST['new_name']);
+
+    if (!$new_name) {
+        die("New filename is required.");
+    }
+
+    // Verify file ownership
+    $stmt = $pdo->prepare("SELECT * FROM files WHERE id = ? AND user_id = ?");
+    $stmt->execute([$file_id, $_SESSION['user_id']]);
+    $file = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$file) {
+        die("File not found or access denied");
+    }
+
+    // Preserve the original file extension
+    $extension     = pathinfo($file['original_name'], PATHINFO_EXTENSION);
+    $new_name      = pathinfo($new_name, PATHINFO_FILENAME); // Strip any extension typed by user
+    $new_name      = rtrim($new_name, '.'); // Remove any trailing periods
+    $full_new_name = $new_name . '.' . $extension;
+
+    // Update display name only, stored_name and file on disk remain unchanged
+    $stmt = $pdo->prepare("UPDATE files SET original_name = ? WHERE id = ?");
+    $stmt->execute([$full_new_name, $file_id]);
+
+    header("Location: ../public/index.php");
+    exit;
+}

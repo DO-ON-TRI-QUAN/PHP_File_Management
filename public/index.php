@@ -27,6 +27,7 @@ switch ($page) {
         break;
 
     case 'home':
+        require_once '../utils/helpers.php';
         // Fetch current user's files to pass to the view
         $stmt = $pdo->prepare("SELECT * FROM files WHERE user_id = ?");
         $stmt->execute([$_SESSION['user_id']]);
