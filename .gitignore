@@ -1,0 +1,21 @@
+# Keep the uploads folder, not the uploaded files inside
+# The .gitkeep file ensures empty folder is tracked by git
+uploads/*
+!uploads/.gitkeep
+
+# Original database info
+config/database.php
+
+# PHP error logs
+*.log
+error_log
+
+# phpMyAdmin and other local server files
+phpmyadmin/
+
+# Windows junk
+Thumbs.db
+desktop.ini
+
+# VSCode settings
+.vscode/
