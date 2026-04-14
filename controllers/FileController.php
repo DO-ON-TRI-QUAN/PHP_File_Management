@@ -6,6 +6,7 @@
 
 session_start();
 require_once '../config/database.php';
+require_once '../utils/flash_messages.php';
 
 $action = $_GET['action'] ?? '';
 
@@ -14,18 +15,24 @@ $action = $_GET['action'] ?? '';
 // --------------------------------------------------------
 if ($action === 'upload') {
     if (!isset($_SESSION['user_id'])) {
-        die("Unauthorized");
+        set_flash('error', 'Unauthorized. Please log in.');
+        header("Location: ../public/index.php?page=login");
+        exit;
     }
 
     if (!isset($_FILES['file'])) {
-        die("No file uploaded");
+        set_flash('error', 'No file uploaded.');
+        header("Location: ../public/index.php");
+        exit;
     }
 
     $file = $_FILES['file'];
 
     // Check for upload errors reported by PHP
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        die("Upload failed");
+        set_flash('error', 'Upload failed. Please try again.');
+        header("Location: ../public/index.php");
+        exit;
     }
 
     $original_name = $file['name'];
@@ -34,13 +41,24 @@ if ($action === 'upload') {
 
     // Limit file size to 5MB
     if ($file_size > 5 * 1024 * 1024) {
-        die("File too large. Maximum size is 5MB.");
+        set_flash('error', 'File too large. Maximum size is 5MB.');
+        header("Location: ../public/index.php");
+        exit;
     }
 
     // Allowed MIME types
     $allowed_types = ['image/jpeg', 'image/png', 'application/pdf'];
-    if (!in_array($file['type'], $allowed_types)) {
-        die("Invalid file type. Allowed: JPEG, PNG, PDF.");
+
+    // Use finfo to detect the real MIME type server-side.
+    // finfo reads the actual file so it prevents spoofing on client-side.
+    $finfo     = finfo_open(FILEINFO_MIME_TYPE);
+    $mime_type = finfo_file($finfo, $tmp_name);
+    finfo_close($finfo);
+
+    if (!in_array($mime_type, $allowed_types)) {
+        set_flash('error', 'Invalid file type. Allowed: JPEG, PNG, PDF.');
+        header("Location: ../public/index.php");
+        exit;
     }
 
     // Generate a unique filename to avoid collisions in the uploads folder
@@ -62,10 +80,13 @@ if ($action === 'upload') {
             $db_path,
             $file_size
         ]);
+        set_flash('success', 'File uploaded successfully.');
         header("Location: ../public/index.php");
         exit;
     } else {
-        die("Failed to move uploaded file.");
+        set_flash('error', 'Failed to move uploaded file.');
+        header("Location: ../public/index.php");
+        exit;    
     }
 }
 
@@ -74,24 +95,30 @@ if ($action === 'upload') {
 // --------------------------------------------------------
 if ($action === 'download') {
     if (!isset($_SESSION['user_id'])) {
-        die("Unauthorized");
+        set_flash('error', 'Unauthorized. Please log in.');
+        header("Location: ../public/index.php?page=login");
+        exit;
     }
 
     $file_id = $_GET['id'];
 
-    // Fetch file and verify it belongs to the current user
+    // Fetch file and verify that it belongs to the current user
     $stmt = $pdo->prepare("SELECT * FROM files WHERE id = ? AND user_id = ?");
     $stmt->execute([$file_id, $_SESSION['user_id']]);
     $file = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$file) {
-        die("File not found or access denied");
+        set_flash('error', 'File not found or access denied.');
+        header("Location: ../public/index.php");
+        exit;
     }
 
     $file_path = '../' . $file['file_path'];
 
     if (!file_exists($file_path)) {
-        die("File missing from server");
+        set_flash('error', 'File missing from server.');
+        header("Location: ../public/index.php");
+        exit;    
     }
 
     // Send file to browser as a download
@@ -108,7 +135,9 @@ if ($action === 'download') {
 // --------------------------------------------------------
 if ($action === 'delete') {
     if (!isset($_SESSION['user_id'])) {
-        die("Unauthorized");
+        set_flash('error', 'Unauthorized. Please log in.');
+        header("Location: ../public/index.php?page=login");
+        exit;
     }
 
     $file_id = $_GET['id'];
@@ -119,7 +148,9 @@ if ($action === 'delete') {
     $file = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$file) {
-        die("File not found or access denied");
+        set_flash('error', 'File not found or access denied.');
+        header("Location: ../public/index.php");
+        exit;
     }
 
     $file_path = '../' . $file['file_path'];
@@ -133,6 +164,7 @@ if ($action === 'delete') {
     $stmt = $pdo->prepare("DELETE FROM files WHERE id = ?");
     $stmt->execute([$file_id]);
 
+    set_flash('success', 'File deleted successfully.');
     header("Location: ../public/index.php");
     exit;
 }
@@ -142,14 +174,18 @@ if ($action === 'delete') {
 // --------------------------------------------------------
 if ($action === 'rename') {
     if (!isset($_SESSION['user_id'])) {
-        die("Unauthorized");
+        set_flash('error', 'Unauthorized. Please log in.');
+        header("Location: ../public/index.php?page=login");
+        exit;
     }
 
     $file_id  = $_POST['id'];
     $new_name = trim($_POST['new_name']);
 
     if (!$new_name) {
-        die("New filename is required.");
+        set_flash('error', 'New filename is required.');
+        header("Location: ../public/index.php");
+        exit;    
     }
 
     // Verify file ownership
@@ -158,7 +194,9 @@ if ($action === 'rename') {
     $file = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$file) {
-        die("File not found or access denied");
+        set_flash('error', 'File not found or access denied.');
+        header("Location: ../public/index.php");
+        exit;
     }
 
     // Preserve the original file extension
@@ -171,6 +209,7 @@ if ($action === 'rename') {
     $stmt = $pdo->prepare("UPDATE files SET original_name = ? WHERE id = ?");
     $stmt->execute([$full_new_name, $file_id]);
 
+    set_flash('success', 'File renamed successfully.');
     header("Location: ../public/index.php");
     exit;
 }

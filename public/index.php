@@ -1,16 +1,16 @@
 <?php
 // ============================================================
-// Main entry point. Handles session protection and routes...
-// ...requests to the appropriate view.
+// Main entry point. Handles session protection and routes
+// requests to the appropriate view.
 // ============================================================
 
 session_start();
 require_once '../config/database.php';
+require_once '../utils/flash_messages.php';
 
 $page = $_GET['page'] ?? 'home';
 
-// Redirect unauthenticated users to login...
-// ...except for login and register pages
+// Redirect unauthenticated users to login.
 if (!isset($_SESSION['user_id']) && !in_array($page, ['login', 'register'])) {
     header("Location: index.php?page=login");
     exit;

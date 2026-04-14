@@ -5,6 +5,14 @@
 </head>
 <body>
 
+<!-- Flash message -->
+<?php $flash = get_flash(); ?>
+<?php if ($flash): ?>
+    <p style="color: <?php echo $flash['type'] === 'success' ? 'green' : 'red'; ?>;">
+        <?php echo htmlspecialchars($flash['message']); ?>
+    </p>
+<?php endif; ?>
+
 <h2>File Manager</h2>
 
 <!-- Upload form -->
@@ -65,4 +73,5 @@
 <a href="?page=logout">Logout</a>
 
 </body>
+
 </html>

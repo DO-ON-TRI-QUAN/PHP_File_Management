@@ -16,9 +16,9 @@ function format_file_size($bytes) {
     }
 }
 
-// Returns a simple text label representing the file type...
-// ...based on the file's original name extension.
-// (Need be replaced with proper icons when CSS is added later)
+// Returns a simple text label representing the file type
+// based on the file's original name extension.
+// (Need be replaced with proper icons when CSS is added later).
 function get_file_icon($original_name) {
     $extension = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
 
