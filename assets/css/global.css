@@ -1,0 +1,21 @@
+:root {
+  --radius: 6px;
+}
+
+/* Improve table readability */
+table th {
+  font-weight: 500;
+}
+
+/* Small inputs inside table */
+input[type="text"] {
+  outline: none;
+}
+
+input[type="text"]:focus {
+  border-color: #2563eb;
+}
+
+button {
+  cursor: pointer;
+}
