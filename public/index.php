@@ -8,10 +8,15 @@ session_start();
 require_once '../config/database.php';
 require_once '../utils/flash_messages.php';
 
+// Pages accessible without login
+const PUBLIC_PAGES   = ['login', 'register', 'share'];
+
+const FILES_PER_PAGE = 10;
+
 $page = $_GET['page'] ?? 'home';
 
-// Redirect unauthenticated users to login
-if (!isset($_SESSION['user_id']) && !in_array($page, ['login', 'register'])) {
+// Redirect unauthenticated users to login, except for public pages
+if (!isset($_SESSION['user_id']) && !in_array($page, PUBLIC_PAGES)) {
     header("Location: index.php?page=login");
     exit;
 }
@@ -28,48 +33,22 @@ switch ($page) {
 
     case 'home':
         require_once '../utils/helpers.php';
-        // Fetch current user's files to pass to the view
-        $stmt = $pdo->prepare("SELECT * FROM files WHERE user_id = ?");
-        $stmt->execute([$_SESSION['user_id']]);
-        $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        require_once '../models/FileModel.php';
+
+        $file_model   = new FileModel($pdo);
+        $current_page = max(1, (int) ($_GET['p'] ?? 1)); // Minimum page is 1
+        $offset       = ($current_page - 1) * FILES_PER_PAGE;
+        $total_files  = $file_model->count_files_by_user($_SESSION['user_id']);
+        $total_pages  = (int) ceil($total_files / FILES_PER_PAGE);
+        $files        = $file_model->get_files_by_user($_SESSION['user_id'], FILES_PER_PAGE, $offset);
+
         require '../views/home.php';
         break;
 
     case 'share':
-        require_once '../models/FileModel.php';
-        $file_model = new FileModel($pdo);
-        $token      = $_GET['token'] ?? '';
-
-        if (!$token) {
-            set_flash('error', 'Invalid share link.');
-            header("Location: index.php?page=login");
-            exit;
-        }
-
-        $file = $file_model->get_file_by_token($token);
-
-        if (!$file) {
-            set_flash('error', 'File not found or link has been disabled.');
-            header("Location: index.php?page=login");
-            exit;
-        }
-
-        $file_path = '../' . $file['file_path'];
-
-        if (!file_exists($file_path)) {
-            set_flash('error', 'File missing from server.');
-            header("Location: index.php?page=login");
-            exit;
-        }
-
-        // Serve file as download
-        header('Content-Description: File Transfer');
-        header('Content-Type: application/octet-stream');
-        header('Content-Disposition: attachment; filename="' . $file['original_name'] . '"');
-        header('Content-Length: ' . filesize($file_path));
-        readfile($file_path);
-        exit;
-
+        // Public file download via share token, no login required
+        require '../controllers/FileController.php';
+        break;
 
     case 'logout':
         session_destroy();

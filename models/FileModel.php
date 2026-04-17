@@ -13,9 +13,16 @@ class FileModel {
 
     // Fetches all files belonging to a user.
     // Returns an array of file rows, or empty array if none.
-    public function get_files_by_user($user_id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM files WHERE user_id = ?");
-        $stmt->execute([$user_id]);
+    public function get_files_by_user($user_id, $limit, $offset) {
+        $stmt = $this->pdo->prepare("SELECT * FROM files WHERE user_id = ? LIMIT ? OFFSET ?");
+
+        // By default PDO binds all values as strings, 
+        // which MySQL doesn't accept.
+        // bindValue() with PDO::PARAM_INT will tell PDO to treat these as integers.
+        $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
+        $stmt->bindValue(2, $limit,   PDO::PARAM_INT);
+        $stmt->bindValue(3, $offset,  PDO::PARAM_INT);
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -34,6 +41,13 @@ class FileModel {
         $stmt = $this->pdo->prepare("SELECT * FROM files WHERE share_token = ? AND visibility = 'public'");
         $stmt->execute([$token]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Returns the total number of files for a user.
+    public function count_files_by_user($user_id) {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM files WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        return (int) $stmt->fetchColumn();
     }
 
     // Inserts a new file record into the database.

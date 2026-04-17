@@ -134,6 +134,42 @@ $flash = get_flash();
 
 </div>
 
+<!-- Pagination -->
+<?php if ($total_pages > 1): ?>
+    <div class="flex justify-center items-center gap-4 mt-4">
+
+        <!-- Previous button -->
+        <?php if ($current_page > 1): ?>
+            <a href="?page=home&p=<?php echo $current_page - 1; ?>"
+                class="px-3 py-1 border rounded hover:bg-gray-100">
+                &larr; Prev
+            </a>
+        <?php else: ?>
+            <span class="px-3 py-1 border rounded text-gray-300 cursor-not-allowed">
+                &larr; Prev
+            </span>
+        <?php endif; ?>
+
+        <!-- Page indicator -->
+        <span class="text-sm text-gray-600">
+            Page <?php echo $current_page; ?> of <?php echo $total_pages; ?>
+        </span>
+
+        <!-- Next button -->
+        <?php if ($current_page < $total_pages): ?>
+            <a href="?page=home&p=<?php echo $current_page + 1; ?>"
+                class="px-3 py-1 border rounded hover:bg-gray-100">
+                Next &rarr;
+            </a>
+        <?php else: ?>
+            <span class="px-3 py-1 border rounded text-gray-300 cursor-not-allowed">
+                Next &rarr;
+            </span>
+        <?php endif; ?>
+
+    </div>
+<?php endif; ?>
+
 <!-- Modal -->
 <div id="modal" class="fixed inset-0 bg-black bg-opacity-30 items-center justify-center" style="display:none;">
     <div class="bg-white rounded shadow p-6 w-80">

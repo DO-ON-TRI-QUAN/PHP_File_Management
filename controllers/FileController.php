@@ -3,7 +3,7 @@
 // ============================================================
 // Handles file upload, download, delete, rename, and
 // visibility toggling.
-// All actions require an active user session.
+// Almost all actions require an active user session.
 // ============================================================
 
 session_start();
@@ -132,7 +132,7 @@ if ($action === 'delete') {
         exit;
     }
 
-    $file_id = $_GET['id'];
+    $file_id = $_POST['id'];
 
     // Fetch file and verify ownership before deleting
     $file = $file_model->get_file_by_id($file_id, $_SESSION['user_id']);
@@ -207,7 +207,7 @@ if ($action === 'rename') {
 }
 
 // --------------------------------------------------------
-// VISIBILITY
+// Visibility
 // --------------------------------------------------------
 if ($action === 'toggle_visibility') {
     if (!isset($_SESSION['user_id'])) {
@@ -239,5 +239,44 @@ if ($action === 'toggle_visibility') {
     }
 
     header("Location: ../public/index.php");
+    exit;
+}
+
+// --------------------------------------------------------
+// Share
+// --------------------------------------------------------
+
+// No login required, token acts as the access credential
+if ($action === 'share' || $page === 'share') {
+    $token = $_GET['token'] ?? '';
+
+    if (!$token) {
+        set_flash('error', 'Invalid share link.');
+        header("Location: index.php?page=login");
+        exit;
+    }
+
+    $file = $file_model->get_file_by_token($token);
+
+    if (!$file) {
+        set_flash('error', 'File not found or link has been disabled.');
+        header("Location: index.php?page=login");
+        exit;
+    }
+
+    $file_path = '../' . $file['file_path'];
+
+    if (!file_exists($file_path)) {
+        set_flash('error', 'File missing from server.');
+        header("Location: index.php?page=login");
+        exit;
+    }
+
+    // Serve file as download
+    header('Content-Description: File Transfer');
+    header('Content-Type: application/octet-stream');
+    header('Content-Disposition: attachment; filename="' . $file['original_name'] . '"');
+    header('Content-Length: ' . filesize($file_path));
+    readfile($file_path);
     exit;
 }
