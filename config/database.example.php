@@ -4,11 +4,11 @@
 // Database config example
 // ============================================================
 
-// Copy this file and rename to database.php, then fill in actual info before running.
+// Placeholder credentials
 $host    = 'localhost';
 $db      = 'file_manager';
-$user    = 'username';
-$pass    = 'password';
+$user    = 'your_db_username';
+$pass    = 'your_db_password';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
