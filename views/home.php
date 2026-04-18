@@ -52,11 +52,6 @@ $flash = get_flash();
         <option value="all">All</option>
         <option value="[IMG]">Images</option>
         <option value="[PDF]">PDF</option>
-        <option value="[DOC]">Documents</option>
-        <option value="[XLS]">Spreadsheets</option>
-        <option value="[TXT]">Text</option>
-        <option value="[ZIP]">Archives</option>
-        <option value="[FILE]">Other</option>
     </select>
 </div>
 
